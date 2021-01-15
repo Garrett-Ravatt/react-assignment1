@@ -2,6 +2,10 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from flask_cors import CORS
+
+from random import choices
+from string import ascii_lowercase, digits
+
 app = Flask(__name__)
 CORS(app)
 
@@ -41,7 +45,7 @@ users = {
 }
 
 @app.route('/users', methods=['GET', 'POST', 'DELETE'])
-def get_users():
+def handle_users():
     if request.method == 'GET':
         search_username = request.args.get('name') #accessing the value of parameter 'name'
         if search_username:
@@ -65,11 +69,16 @@ def get_users():
         if (userToAdd==None):
             resp = jsonify(success=False)
         else:
+            if not userToAdd.get('id'):
+                id = ''.join(choices(ascii_lowercase + digits, k = 6))
+                userToAdd['id'] = id
             users['users_list'].append(userToAdd)
-            resp = jsonify(success=True)
+            resp = jsonify(userToAdd)
+            resp.status_code = 201
             #resp.status_code = 200 #optionally, you can always set a response code. 
             # 200 is the default code for a normal response
         return resp
+
     elif request.method == 'DELETE':
         deleteRequest = request.get_json()
         if deleteRequest:
